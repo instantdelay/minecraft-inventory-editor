@@ -25,9 +25,10 @@ public class MainWindow {
    public MinecraftData minecraftData = new MinecraftData();
    
    public MainWindow() {
+      initComponents();
    }
    
-   public void initComponents() {
+   private void initComponents() {
       uxWindow = new JFrame("Minecraft Inventory Editor");
       uxWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       uxWindow.setLayout(new BorderLayout());

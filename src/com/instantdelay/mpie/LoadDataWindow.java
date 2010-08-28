@@ -20,7 +20,7 @@ public class LoadDataWindow {
       File minecraftDataFolder = new File(appData, ".minecraft");
       
       if (attemptDataLoad(minecraftDataFolder)) {
-         mainWindow.initComponents();
+         //mainWindow.initComponents();
          mainWindow.show();
       }
       else {
