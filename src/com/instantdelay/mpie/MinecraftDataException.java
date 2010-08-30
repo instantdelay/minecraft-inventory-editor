@@ -7,4 +7,8 @@ public class MinecraftDataException extends Exception {
       super(message);
    }
    
+   public MinecraftDataException(String message, Throwable cause) {
+      super(message, cause);
+   }
+   
 }

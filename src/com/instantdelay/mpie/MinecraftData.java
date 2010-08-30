@@ -1,5 +1,6 @@
 package com.instantdelay.mpie;
 
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -7,12 +8,19 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Class responsible for loading resources from the
+ * Minecraft user data directory.
+ * 
+ * @author Spencer Van Hoose
+ *
+ */
 public class MinecraftData {
 
    public File userDataDirectory;
    public BufferedImage itemSprites;
    public BufferedImage terrainSprites;
-   public BufferedImage inventoryBg;
+   public Image inventoryBg;
    public ArrayList<String> savedGames = new ArrayList<String>(); //change to SavedGame[] class or w/e
    
    private boolean initialized = false;
@@ -66,20 +74,12 @@ public class MinecraftData {
       }
       
       try {
-         inventoryBg = ImageIO.read(zip.getInputStream(zip.getEntry("gui/inventory.png")));
+         BufferedImage fullInventoryBg = ImageIO.read(zip.getInputStream(zip.getEntry("gui/inventory.png")));
+         inventoryBg = fullInventoryBg.getSubimage(7, 83, 162, 76).getScaledInstance(162, 76, BufferedImage.SCALE_SMOOTH);
       }
       catch (Exception ex) {
          throw new MinecraftDataException("The inventory image could not be found in the " +
          "Minecraft jar. MPIE may need to be updated if they have moved.");
-      }
-      
-      File saveDir = new File(location, "saves");
-      if (saveDir.exists()) {
-         for (File save : saveDir.listFiles()) {
-            if (save.isDirectory()) {
-               savedGames.add(save.getName());
-            }
-         }
       }
       
       initialized = true;

@@ -21,8 +21,8 @@ public class AppDriver implements Runnable {
          UIManager.setLookAndFeel(new WindowsLookAndFeel());
       }
       catch (UnsupportedLookAndFeelException ex) {
-         ex.printStackTrace();
          // Use the default look and feel
+         ex.printStackTrace();
       }
       
       SwingUtilities.invokeLater(new AppDriver());
@@ -30,9 +30,8 @@ public class AppDriver implements Runnable {
 
    @Override
    public void run() {
-      SelectFileDialog dlg = new SelectFileDialog();
+      MainWindow dlg = new MainWindow();
       dlg.show();
-      //new LoadDataWindow();
    }
 
 }
