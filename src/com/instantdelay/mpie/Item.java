@@ -1,5 +1,7 @@
 package com.instantdelay.mpie;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.ImageObserver;
 
@@ -17,14 +19,6 @@ import org.jnbt.ShortTag;
 public class Item extends InventoryEntry {
    
    private static final String TAG_ERROR = "Invalid inventory data.";
-   
-   private static short[][] spriteLoc = new short[86][2];
-   private static short[] allowedBlockIds = new short[] {
-   };
-   
-   static {
-      // 0 air
-   }
    
    private short damage;
    
@@ -62,6 +56,7 @@ public class Item extends InventoryEntry {
       this.damage = damage;
    }
 
+   @Override
    public short getDamage() {
       return damage;
    }
@@ -73,17 +68,16 @@ public class Item extends InventoryEntry {
 
    @Override
    public void draw(Graphics g, ImageObserver observer, int x, int y, int width, int height, MinecraftData data) {
-      if (getId() < 256 || getId() > 344) {
+      BlockInfo type = getType();
+      if (type == null) {
+         g.setColor(Color.WHITE);
+         g.setFont(new Font("Dialog", Font.BOLD, 12));
+         g.drawString("?", x + 7, y + 13);
          return;
       }
       
-      short[] loc = null;//spriteLoc[getId()];
-      if (loc == null) {
-         loc = new short[] { 0, 0};
-      }
-      
-      int spriteX = loc[0] * 16;
-      int spriteY = loc[1] * 16;
+      int spriteX = type.getSprite().x * 16;
+      int spriteY = type.getSprite().y * 16;
       
       g.drawImage(data.itemSprites,
             x, y, x + width, y + height, //destination

@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -11,7 +13,9 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 /**
  * Class which handles rendering of the player inventory.
@@ -22,7 +26,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class InventoryPanel extends JPanel implements
       ComponentListener, MouseMotionListener, MouseListener {
-
+   
    public static final Dimension SMALL_SIZE = new Dimension(162, 76);
    public static final Dimension MEDIUM_SIZE = new Dimension(324, 152);
    public static final Dimension LARGE_SIZE = new Dimension(486, 228);
@@ -137,15 +141,11 @@ public class InventoryPanel extends JPanel implements
    }
 
    @Override
-   public void componentShown(ComponentEvent e) {
-      // TODO Auto-generated method stub
-      
+   public void componentShown(ComponentEvent e) {      
    }
 
    @Override
    public void mouseDragged(MouseEvent e) {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
@@ -162,14 +162,10 @@ public class InventoryPanel extends JPanel implements
 
    @Override
    public void mouseEntered(MouseEvent e) {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
-   public void mouseExited(MouseEvent e) {
-      // TODO Auto-generated method stub
-      
+   public void mouseExited(MouseEvent e) {      
    }
 
    @Override
@@ -177,6 +173,10 @@ public class InventoryPanel extends JPanel implements
       Component c = this.getComponentAt(e.getPoint());
       if (!(c instanceof InventorySlot))
          return;
+      
+      if (e.getButton() != MouseEvent.BUTTON1) {
+         return;
+      }
       
       InventorySlot slot = (InventorySlot) c;
       
@@ -193,56 +193,85 @@ public class InventoryPanel extends JPanel implements
             }
             catch (CloneNotSupportedException ex) {}
          }
-         else if (e.getButton() == MouseEvent.BUTTON1 || slot.getItem().getCount() == 1){
-            movingItem = slot.getItem();
-            slot.setItem(null);
-         }
          else {
-            try {
-               int count = slot.getItem().getCount();
-               movingItem = (InventoryEntry) slot.getItem().clone();
-               movingItem.setCount((byte) (count / 2));
-               slot.getItem().setCount((byte) (count - movingItem.getCount()));
-            }
-            catch (CloneNotSupportedException ex) {}
+            movingItem = slot.getItem();
+            inventory.remove(movingItem);
+            slot.setItem(null);
          }
          repaint();
       }
       else {
-         // drop item here
-         if (slot.getItem() == null || slot.getItem().getId() != movingItem.getId()) {
+         // dropping an item
+         
+         if (slot.getItem() == null || slot.getItem() instanceof Item ||
+               slot.getItem().getCount() == 64 ||
+               slot.getItem().getId() != movingItem.getId()) {
             InventoryEntry newMovingItem = slot.getItem();
+            
             slot.setItem(movingItem);
+            inventory.add(movingItem);
+            
             movingItem = newMovingItem;
+            inventory.remove(movingItem);
             repaint();
          }
          else if (slot.getItem().getId() == movingItem.getId()) {
-            if (slot.getItem().getCount() == 64) {
-               InventoryEntry newMovingItem = slot.getItem();
-               slot.setItem(movingItem);
-               movingItem = newMovingItem;
+            int newCount = slot.getItem().getCount() + movingItem.getCount();
+            
+            if (newCount > 64) {
+               slot.getItem().setCount((byte) 64);
+               movingItem.setCount((byte) (newCount - 64));
             }
             else {
-               int newCount = slot.getItem().getCount() + movingItem.getCount();
-               
-               if (newCount > 64) {
-                  slot.getItem().setCount((byte) 64);
-                  movingItem.setCount((byte) (newCount - 64));
-               }
-               else {
-                  slot.getItem().setCount((byte) newCount);
-                  movingItem = null;
-               }
-               
-               repaint();
+               slot.getItem().setCount((byte) newCount);
+               movingItem = null;
             }
+            
+            repaint();
          }
       }
    }
 
    @Override
    public void mouseReleased(MouseEvent e) {
-      // TODO Auto-generated method stub
+      Component c = this.getComponentAt(e.getPoint());
+      if (!(c instanceof InventorySlot))
+         return;
       
+      final InventorySlot slot = (InventorySlot) c;
+      
+      if (e.getButton() == MouseEvent.BUTTON3) {
+         JPopupMenu menu = new JPopupMenu();
+         
+         ActionListener l = new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               if (e.getActionCommand().equals("Clear Slot")) {
+                  slot.setItem(null);
+                  repaint();
+               }
+               else if (e.getActionCommand().equals("")) {
+                  
+               }
+            }
+         };
+         
+         JMenuItem title = new JMenuItem();
+         title.setEnabled(false);
+         menu.add(title);
+         
+         if (slot.getItem() == null) {
+            title.setText("(empty)");
+         }
+         else {
+            title.setText(slot.getItem().getType() == null ? "(unknown)" : slot.getItem().getType().getName());
+            JMenuItem clear = new JMenuItem("Clear Slot");
+            clear.addActionListener(l);
+            menu.add(clear);
+         }
+         
+         menu.show(this, e.getX(), e.getY());
+      }
    }
 }

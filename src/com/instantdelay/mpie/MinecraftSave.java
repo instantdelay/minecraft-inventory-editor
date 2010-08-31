@@ -3,17 +3,24 @@ package com.instantdelay.mpie;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jnbt.CompoundTag;
 import org.jnbt.ListTag;
 import org.jnbt.NBTInputStream;
+import org.jnbt.NBTOutputStream;
 import org.jnbt.ShortTag;
 import org.jnbt.Tag;
 
 public class MinecraftSave {
    
+   private CompoundTag rootTag;
+   private CompoundTag dataTag;
    private CompoundTag playerTag;
    
    private File location;
@@ -57,15 +64,15 @@ public class MinecraftSave {
          throw new MinecraftDataException("Invalid world. An error occurred opening the level data.", ex);
       }
       
-      CompoundTag root;
+      CompoundTag rootTag;
       try {
-         root = (CompoundTag)nbtStream.readTag();
+         rootTag = (CompoundTag)nbtStream.readTag();
       }
       catch (IOException ex) {
          throw new MinecraftDataException("Invalid game file. An error occurred reading the level data.", ex);
       }
       
-      CompoundTag dataTag = TagUtils.getCompoundTag(root, "Data", "Missing Data tag or wrong Data tag format.");
+      dataTag = TagUtils.getCompoundTag(rootTag, "Data", "Missing Data tag or wrong Data tag format.");
       playerTag = TagUtils.getCompoundTag(dataTag, "Player", "Missing Player tag or wrong Player tag format.");
       ListTag inventoryTag = TagUtils.getListTag(playerTag, "Inventory", "Missing Inventory tag or wrong Inventory tag format.");
       
@@ -88,6 +95,44 @@ public class MinecraftSave {
       }
       
       loaded = true;
+   }
+   
+   public void save() {
+      if (!loaded) {
+         return;
+      }
+      
+      List<Tag> inventoryTags = new ArrayList<Tag>();
+      
+      for (InventoryEntry item : inventory) {
+         inventoryTags.add(item.toTagData());
+      }
+      
+      Map<String,Tag> playerTagValue = new HashMap<String, Tag>(playerTag.getValue());
+      playerTagValue.put("Inventory", new ListTag("Inventory", CompoundTag.class, inventoryTags));
+      
+      Map<String,Tag> dataTagValue = new HashMap<String, Tag>(dataTag.getValue());
+      dataTagValue.put("Player", new CompoundTag("Player", playerTagValue));
+      
+      CompoundTag newDataTag = new CompoundTag("Data", dataTagValue);
+      
+      Map<String, Tag> rootTagValue = new HashMap<String, Tag>(rootTag.getValue());
+      rootTagValue.put("Data", newDataTag);
+      
+      try {
+         NBTOutputStream out = new NBTOutputStream(new FileOutputStream(new File(location, "level.dat")));
+         out.writeTag(new CompoundTag("", rootTagValue));
+         out.close();
+      }
+      catch (FileNotFoundException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      catch (IOException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      
    }
    
    public boolean isLoaded() {

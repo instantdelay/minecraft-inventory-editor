@@ -1,5 +1,6 @@
 package com.instantdelay.mpie;
 
+import java.awt.Color;
 import java.awt.Graphics;
 
 import javax.swing.JPanel;
@@ -10,8 +11,7 @@ public class InventorySlot extends JPanel {
    private byte slot;
    private InventoryEntry item;
    private InventoryPanel parent;
-   
-   public InventorySlot() {}
+   private boolean mouseOver = false;
    
    public InventorySlot(byte slot) {
       this.slot = slot;
@@ -45,6 +45,11 @@ public class InventorySlot extends JPanel {
          return;
       
       item.draw(g, this, 0, 0, this.getWidth(), this.getHeight(), parent.getMinecraftData());
+      
+      if (mouseOver) {
+         g.setColor(new Color(255, 255, 255, 220));
+         g.fillRect(0, 0, this.getWidth(), this.getHeight());
+      }
    }
 
    public void setParentInventoryPanel(InventoryPanel parent) {
@@ -54,4 +59,6 @@ public class InventorySlot extends JPanel {
    public InventoryPanel getParentInventoryPanel() {
       return parent;
    }
+   
+   
 }

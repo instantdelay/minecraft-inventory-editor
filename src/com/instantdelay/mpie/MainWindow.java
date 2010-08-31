@@ -27,6 +27,7 @@ public class MainWindow implements ActionListener {
    private javax.swing.JMenu mnuView;
    private javax.swing.JMenuBar mubMenuBar;
    private javax.swing.JMenuItem muiLoadGame;
+   private javax.swing.JMenuItem muiSave;
    private javax.swing.JRadioButtonMenuItem muiSizeLarge;
    private javax.swing.JRadioButtonMenuItem muiSizeMedium;
    private javax.swing.JRadioButtonMenuItem muiSizeSmall;
@@ -34,6 +35,8 @@ public class MainWindow implements ActionListener {
    private javax.swing.JPanel pnlMain;
    private javax.swing.JPanel pnlMissingDataDirectory;
    private javax.swing.JPanel pnlBlank;
+   
+   private MinecraftSave curWorld = null;
    
    public MinecraftData minecraftData = new MinecraftData();
    
@@ -76,13 +79,14 @@ public class MainWindow implements ActionListener {
    public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("Load game...")) {
          SelectWorldDialog dlg = new SelectWorldDialog(frmWindow, minecraftData);
-         MinecraftSave save = dlg.selectWorldLocation();
-         if (save == null)
+         curWorld = dlg.selectWorldLocation();
+         if (curWorld == null)
             return;
          
          try {
-            save.load();
-            pnlInventory.setInventory(save.getInventory());
+            curWorld.load();
+            pnlInventory.setInventory(curWorld.getInventory());
+            muiSave.setEnabled(true);
             switchView("inventoryCard");
          }
          catch (MinecraftDataException ex) {
@@ -91,6 +95,9 @@ public class MainWindow implements ActionListener {
                   "There was an error loading the selected world:\n\n" + ex.getMessage(),
                   "Load Error", JOptionPane.ERROR_MESSAGE);
          }
+      }
+      else if (e.getActionCommand().equals("Save") && curWorld != null) {
+         curWorld.save();
       }
    }
    
@@ -157,9 +164,14 @@ public class MainWindow implements ActionListener {
       muiLoadGame.addActionListener(this);
       muiLoadGame.setEnabled(false);
       mnuFile.add(muiLoadGame);
+      
+      muiSave = new javax.swing.JMenuItem("Save");
+      muiSave.setEnabled(false);
+      muiSave.addActionListener(this);
+      mnuFile.add(muiSave);
 
       mubMenuBar.add(mnuFile);
-
+      
       mnuView = new javax.swing.JMenu("View");
 
       ActionListener sizeListener = new ActionListener() {
